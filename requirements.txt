@@ -1,0 +1,3 @@
+# Only needed for real data (not for --demo):
+firebase-admin>=6.5      # Auth user count + Firestore error log
+google-analytics-data>=0.18  # active users (GA4 realtime), optional

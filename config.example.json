@@ -1,0 +1,18 @@
+{
+  "fast_seconds": 60,
+  "slow_seconds": 600,
+  "port": 8787,
+  "projects": [
+    {
+      "name": "My Android app",
+      "urls": ["https://my-project.web.app", "https://europe-west1-my-project.cloudfunctions.net/health"],
+      "service_account": "keys/my-android-app.json",
+      "ga4_property_id": "123456789",
+      "errors_collection": "app_errors"
+    },
+    {
+      "name": "My website",
+      "urls": ["https://example.com"]
+    }
+  ]
+}

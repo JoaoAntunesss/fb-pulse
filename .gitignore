@@ -1,0 +1,7 @@
+# NEVER commit keys or your personal config
+keys/*
+!keys/README.md
+config.json
+data/
+__pycache__/
+*.pyc
