@@ -43,6 +43,12 @@ cp config.example.json config.json   # then edit it and follow SETUP.md
 python main.py
 ```
 
+## As a website
+
+Prefer a page you can open from anywhere? A free GitHub Actions job can publish it to GitHub Pages: see [SETUP.md step 6](SETUP.md#6-optional-run-it-as-a-website-free-github-pages).
+
+![hosted](docs/hosted-demo.png)
+
 ## Honest limits
 
 - Crashlytics crash reports cannot be read for free by a custom dashboard (only through BigQuery, which can cost

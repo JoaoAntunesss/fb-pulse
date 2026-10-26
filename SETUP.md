@@ -116,3 +116,25 @@ python main.py
 
 It opens http://127.0.0.1:8787 in your browser. The page is only reachable from your own computer.
 If a panel shows an orange message, that is the exact error from Firebase (wrong path, missing role, API not enabled).
+
+## 6. Optional: run it as a website (free, GitHub Pages)
+
+The dashboard can also live at `https://<you>.github.io/fb-pulse/`, so you can open it from any device. A free
+scheduled GitHub Actions job (`.github/workflows/pulse.yml`) runs `collect.py` about every 10 minutes, reads your
+projects, and publishes the page plus a `data.json`. Nothing runs on your PC.
+
+1. In the repository: **Settings › Pages › Source: GitHub Actions**.
+2. **Settings › Secrets and variables › Actions › New repository secret**:
+   - `PULSE_CONFIG`: the full contents of your `config.json`.
+   - `PULSE_KEYS`: one JSON object that maps each key file name used in the config to its content, e.g.
+     `{"my-android-app.json": { ...the whole service account JSON... }}`. Skip it if you only check URLs.
+3. **Actions › Publish FB Pulse › Run workflow**. After about a minute the site is up.
+
+Good to know
+- The page is **public** (anyone with the link can read it). It shows project names, your URLs, response times and
+  counts. Error *messages* are not published, only the count; add `"public_error_messages": true` to the config
+  to publish them too. The page asks search engines not to index it.
+- Keys live only in GitHub Secrets and are written to the runner while it works. They are never in the page or `data.json`.
+- GitHub may delay scheduled runs by a few minutes, and the page shows when the data is old.
+- Free for public repositories. Try it first with `python collect.py --demo --out site` and open `site/index.html`
+  through any local web server.

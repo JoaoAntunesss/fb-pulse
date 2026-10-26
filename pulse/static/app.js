@@ -1,6 +1,8 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+const SRC = (document.querySelector("meta[name=pulse-data]") || {}).content || "/api/status";
+const HOSTED = SRC !== "/api/status";
 const NS = "http://www.w3.org/2000/svg";
 
 function spark(values, color) {
@@ -75,7 +77,7 @@ function card(p) {
 
 async function refresh() {
   try {
-    const r = await fetch("/api/status", { cache: "no-store" });
+    const r = await fetch(SRC + (HOSTED ? "?t=" + Date.now() : ""), { cache: "no-store" });
     const s = await r.json();
     $("demo").hidden = !s.demo;
     $("slow").textContent = Math.round(s.slow_seconds / 60);
@@ -83,10 +85,12 @@ async function refresh() {
     const count = (st) => s.projects.filter((p) => p.status === st).length;
     const sum = $("summary"); sum.replaceChildren();
     [["up", "ok"], ["slow", "warn"], ["down", "bad"]].forEach(([st]) => { if (count(st)) sum.appendChild(el("span", "pill " + st, count(st) + " " + st)); });
-    $("stamp").textContent = "Updated " + new Date(s.generated).toLocaleTimeString();
+    const age = (Date.now() - new Date(s.generated)) / 60000;
+    $("stamp").textContent = "Updated " + new Date(s.generated).toLocaleTimeString() + (HOSTED && age > 30 ? " — data is " + Math.round(age) + " min old" : "");
+    if (HOSTED) $("foot").textContent = "Hosted copy: a free scheduled job checks your projects about every 10 minutes and publishes this page. Keys stay in GitHub Secrets, never in the page.";
   } catch (e) {
-    $("stamp").textContent = "Cannot reach the local server — is main.py still running?";
+    $("stamp").textContent = HOSTED ? "No data yet — the first scheduled run has not published." : "Cannot reach the local server — is main.py still running?";
   }
 }
 refresh();
-setInterval(refresh, 10000);
+setInterval(refresh, HOSTED ? 60000 : 10000);

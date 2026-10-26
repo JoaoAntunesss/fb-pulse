@@ -96,3 +96,31 @@ class MonitorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CollectTests(unittest.TestCase):
+    def test_history_carries_over_and_errors_are_redacted(self):
+        import collect
+        conf = cfg.demo_config()
+        mon = Monitor(conf, demo=True)
+        name, url = conf.projects[0].name, conf.projects[0].urls[0]
+        prev = {"projects": [{"name": name, "urls": [{"url": url, "ms": [100, 110], "ok": [1, 1]}], "active": {"hist": [5, 6]}}]}
+        collect.seed_history(mon, prev)
+        mon.poll_fast()
+        mon.poll_slow()
+        snap = mon.snapshot()
+        first = snap["projects"][0]
+        self.assertEqual(first["urls"][0]["ms"][:2], [100, 110])
+        self.assertEqual(first["urls"][0]["ok"][:2], [1, 1])
+        self.assertTrue(any(p["errors"]["latest"] for p in snap["projects"]))
+        red = collect.redact(snap, show_errors=False)
+        self.assertTrue(all(p["errors"]["latest"] == [] for p in red["projects"]))
+        self.assertTrue(any(p["errors"]["count"] for p in red["projects"]))
+
+    def test_keys_file_names_are_checked(self):
+        import collect
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(SystemExit):
+                collect.write_keys(json.dumps({"../evil.json": {}}), Path(t))
+            collect.write_keys(json.dumps({"a.json": {"x": 1}}), Path(t))
+            self.assertTrue((Path(t) / "a.json").is_file())

@@ -114,7 +114,7 @@ class Monitor:
                     last = s["last"]
                     oks = list(s["ok"])
                     urls.append({
-                        "url": u, "last": last, "ms": list(s["ms"]),
+                        "url": u, "last": last, "ms": list(s["ms"]), "ok": oks,
                         "uptime": round(100 * sum(oks) / len(oks), 1) if oks else None,
                     })
                 lasts = [x["last"] for x in urls if x["last"]]
