@@ -130,7 +130,7 @@ class Monitor:
                     "users": dict(st["users"]),
                     "active": {k: (list(v) if k == "hist" else v) for k, v in st["active"].items()},
                     "errors": dict(st["errors"]),
-                    "configured": {"urls": bool(p.urls), "users": bool(p.service_account),
+                    "configured": {"urls": bool(p.urls), "users": bool(p.service_account) or self.demo,
                                    "active": bool(p.ga4_property_id), "errors": bool(p.errors_collection)},
                 })
         return {"generated": datetime.now(timezone.utc).isoformat(), "demo": self.demo, "projects": out,
