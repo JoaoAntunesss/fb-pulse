@@ -23,20 +23,40 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
+      # Sem os segredos PULSE_CONFIG / PULSE_KEYS ainda não há nada para publicar:
+      # o trabalho avisa e termina sem erro (em vez de falhar e mandar um email a cada 10 minutos).
+      - name: Check config
+        id: chk
+        env:
+          PULSE_CONFIG: ${{ secrets.PULSE_CONFIG }}
+        run: |
+          if [ -z "$PULSE_CONFIG" ]; then
+            echo "::notice title=FB Pulse not configured::Add the PULSE_CONFIG (and PULSE_KEYS) repository secrets to publish the dashboard. See SETUP.md."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.chk.outputs.ok == 'true'
       - uses: actions/setup-python@v5
+        if: steps.chk.outputs.ok == 'true'
         with:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt
+        if: steps.chk.outputs.ok == 'true'
       - name: Collect
+        if: steps.chk.outputs.ok == 'true'
         env:
           PULSE_CONFIG: ${{ secrets.PULSE_CONFIG }}
           PULSE_KEYS: ${{ secrets.PULSE_KEYS }}
           PREV_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data.json
         run: python collect.py --out site
       - uses: actions/configure-pages@v5
+        if: steps.chk.outputs.ok == 'true'
       - uses: actions/upload-pages-artifact@v3
+        if: steps.chk.outputs.ok == 'true'
         with:
           path: site
       - id: deploy
+        if: steps.chk.outputs.ok == 'true'
         uses: actions/deploy-pages@v4
