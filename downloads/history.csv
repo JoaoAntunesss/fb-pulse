@@ -1,0 +1,13 @@
+date,app,tag,asset,asset_id,count
+2026-11-15,AWplayer,latest,AntunesPlayer-instalador.exe,747739562,0
+2026-11-15,AWplayer,latest,AntunesPlayer-portatil.exe,747739565,0
+2026-11-15,AWplayer,latest,AntunesPlayer.apk,747743196,3
+2026-11-15,Cockpit,build,cockpit-build.apk,740521215,1
+2026-11-15,Cockpit,v1.3,cockpit.apk,674587605,2
+2026-11-15,Cockpit,v1.5,cockpit.apk,674613838,4
+2026-11-15,Cockpit,v1.7,cockpit.apk,674644067,4
+2026-11-15,Cockpit,v1.8,cockpit.apk,674948904,4
+2026-11-15,Cockpit,v2.1,cockpit.apk,693759643,3
+2026-11-15,Freezer,v1.4,freezer.apk,728456317,2
+2026-11-15,Freezer,v1.5,freezer.apk,728533459,3
+2026-11-15,Freezer,v1.6,freezer.apk,740521475,1

@@ -1,0 +1,9 @@
+{
+  "owner": "JoaoAntunesss",
+  "apps": [
+    {"name": "AWplayer", "repo": "AntunesPlayer"},
+    {"name": "Cockpit", "repo": "cockpit"},
+    {"name": "Freezer", "repo": "Freezer"}
+  ],
+  "skip_assets": ["versao.json"]
+}

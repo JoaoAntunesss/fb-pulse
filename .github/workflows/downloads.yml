@@ -1,0 +1,29 @@
+name: Downloads das apps
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"   # de 2 em 2 horas; o GitHub pode atrasar uns minutos
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: downloads
+  cancel-in-progress: false
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contar downloads
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 downloads/track.py
+      - name: Guardar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add downloads/history.csv downloads/summary.md
+          git diff --cached --quiet || git commit -m "Downloads: $(date -u +%F)" && git push
