@@ -38,10 +38,22 @@ function card(p) {
   tiles.appendChild(tile("Users", p.configured.users ? p.users.value : null));
   tiles.appendChild(tile("Errors 24h", p.configured.errors ? p.errors.count : null));
   c.appendChild(tiles);
+  const people = (label, d) => {
+    if (!d || d.value === null || d.value === undefined || d.active7 === undefined) return;
+    const t2 = el("div", "tiles");
+    t2.appendChild(tile(label + " · 7 days", d.active7));
+    t2.appendChild(tile(label + " · 30 days", d.active30));
+    t2.appendChild(tile("New · 7 days", d.new7));
+    c.appendChild(el("div", "label", label === "Installs" ? `Installs (anonymous): ${d.value}` : "Users who opened the app"));
+    c.appendChild(t2);
+  };
+  if (p.configured.users) people("Users", p.users);
+  if (p.configured.installs) people("Installs", p.installs);
   const notes = [];
   if (p.configured.active && act.error) notes.push("Active users: " + act.error);
   if (p.configured.users && p.users.error) notes.push("Users: " + p.users.error);
   if (p.configured.errors && p.errors.error) notes.push("Errors: " + p.errors.error);
+  if (p.configured.installs && p.installs.error) notes.push("Installs: " + p.installs.error);
   if (!p.configured.active) notes.push("Active users: add ga4_property_id (see SETUP.md)");
   if (!p.configured.errors) notes.push("Errors: add errors_collection (see SETUP.md)");
   if (p.configured.active && act.hist.length > 1) { c.appendChild(el("div", "label", "Active users")); c.appendChild(spark(act.hist, "#4cc9f0")); }

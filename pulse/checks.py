@@ -41,17 +41,51 @@ class FirebaseSources:
         return self._app
 
     def total_users(self, cap: int = 200_000) -> dict:
+        """Registered users + how many used the app (token refresh or sign-in) in the last 7 / 30 days."""
         try:
             from firebase_admin import auth
 
-            n = 0
+            now = time.time() * 1000
+            d7, d30 = now - 7 * 86400_000, now - 30 * 86400_000
+            n = a7 = a30 = new7 = 0
             page = auth.list_users(app=self._firebase_app())
             while page:
-                n += len(page.users)
+                for u in page.users:
+                    n += 1
+                    m = u.user_metadata
+                    seen = max(m.last_refresh_timestamp or 0, m.last_sign_in_timestamp or 0)
+                    a7 += seen >= d7
+                    a30 += seen >= d30
+                    new7 += (m.creation_timestamp or 0) >= d7
                 if n >= cap:
                     break
                 page = page.get_next_page()
-            return {"value": n, "error": ""}
+            return {"value": n, "active7": a7, "active30": a30, "new7": new7, "error": ""}
+        except Exception as e:  # noqa: BLE001
+            return {"value": None, "error": _short(e)}
+
+    def installs(self) -> dict:
+        """Anonymous installs written by the app to the Realtime Database: <installs_path>/<random id> = {first, last, v}."""
+        try:
+            from firebase_admin import db
+
+            app = self._firebase_app()
+            data = db.reference(self.project.installs_path, app=app, url=self.project.database_url).get() or {}
+            now = time.time() * 1000
+            d7, d30 = now - 7 * 86400_000, now - 30 * 86400_000
+            n = a7 = a30 = new7 = 0
+            versions: dict[str, int] = {}
+            for v in data.values():
+                if not isinstance(v, dict):
+                    continue
+                n += 1
+                last = v.get("last") or 0
+                a7 += last >= d7
+                a30 += last >= d30
+                new7 += (v.get("first") or 0) >= d7
+                ver = str(v.get("v", "?"))[:20]
+                versions[ver] = versions.get(ver, 0) + 1
+            return {"value": n, "active7": a7, "active30": a30, "new7": new7, "versions": versions, "error": ""}
         except Exception as e:  # noqa: BLE001
             return {"value": None, "error": _short(e)}
 

@@ -20,6 +20,8 @@ header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:18px
 .big{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
 .big small{font-size:12px;color:var(--muted);font-weight:400}
 .tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.tiles+.label{margin-top:18px;display:block}
+.label+.tiles{margin-top:8px}
 .tile{background:#12151c;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
 .url{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;font-size:12px}
 .url .u{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--muted)}

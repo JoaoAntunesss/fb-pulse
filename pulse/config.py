@@ -18,6 +18,8 @@ class Project:
     service_account: Path | None = None
     ga4_property_id: str = ""
     errors_collection: str = ""
+    database_url: str = ""
+    installs_path: str = ""
 
 
 @dataclass
@@ -72,7 +74,15 @@ def load(path) -> Config:
             raise ConfigError(f"{name}: errors_collection must be a simple collection name (letters, digits, _ -).")
         if (prop or col) and not sa_path:
             raise ConfigError(f"{name}: ga4_property_id / errors_collection need a 'service_account'.")
-        projects.append(Project(name, urls, sa_path, prop, col))
+        dbu = str(item.get("database_url", "") or "")
+        if dbu and not _URL.match(dbu):
+            raise ConfigError(f"{name}: database_url must be the Realtime Database URL (https://...firebasedatabase.app).")
+        inst = str(item.get("installs_path", "") or "")
+        if inst and not _COLLECTION.match(inst):
+            raise ConfigError(f"{name}: installs_path must be a simple name (letters, digits, _ -).")
+        if inst and not (dbu and sa_path):
+            raise ConfigError(f"{name}: installs_path needs 'database_url' and a 'service_account'.")
+        projects.append(Project(name, urls, sa_path, prop, col, dbu, inst))
     if not projects:
         raise ConfigError("No projects in the config. Add at least one under \"projects\".")
     return Config(
@@ -87,7 +97,7 @@ def load(path) -> Config:
 def demo_config() -> Config:
     """Built-in fake projects for --demo (no files, no network)."""
     return Config([
-        Project("Garage log (Android)", ["https://demo.invalid/garage"], None, "100000001", "app_errors"),
+        Project("Garage log (Android)", ["https://demo.invalid/garage"], None, "100000001", "app_errors", "https://demo.invalid", "installs"),
         Project("Freezer (Android)", ["https://demo.invalid/freezer-slow"], None, "100000002", "app_errors"),
         Project("License tool (web)", ["https://demo.invalid/licenses", "https://demo.invalid/api-down"], None, "", "app_errors"),
         Project("Landing page", ["https://demo.invalid/landing"], None, "", ""),

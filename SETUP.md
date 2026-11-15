@@ -138,3 +138,34 @@ Good to know
 - GitHub may delay scheduled runs by a few minutes, and the page shows when the data is old.
 - Free for public repositories. Try it first with `python collect.py --demo --out site` and open `site/index.html`
   through any local web server.
+
+## 6. Real users and anonymous installs
+
+**Users (Firebase Auth).** With a service account key the Users tile also shows how many people opened the app in
+the last 7 and 30 days, and how many signed up this week. It uses the sign-in and token-refresh times Firebase Auth
+already keeps, so the app needs no changes. This is the right number for apps that require sign-in.
+
+**Installs (apps without mandatory sign-in).** The app writes, at most once a day, a random install ID to the
+Realtime Database: `installs/<random id> = {first, last, v}` (first open, last open, app version). No account, no
+personal data. Add to `config.json`:
+
+```json
+"database_url": "https://your-project-default-rtdb.europe-west1.firebasedatabase.app",
+"installs_path": "installs"
+```
+
+Rules (Realtime Database > Rules), next to your existing ones:
+
+```json
+"installs": {
+  "$id": {
+    ".read": false,
+    ".write": "$id.matches(/^[0-9a-f-]{36}$/) && newData.exists()",
+    ".validate": "newData.hasChildren(['last','v']) && newData.child('last').isNumber() && newData.child('last').val() <= now && newData.child('v').isString() && newData.child('v').val().length <= 20",
+    "first": { ".validate": "newData.isNumber() && newData.val() <= now" },
+    "last": {}, "v": {}, "$other": { ".validate": false }
+  }
+}
+```
+
+Mention it in your privacy policy (e.g. "the app sends a random ID and its version once a day to count installs").

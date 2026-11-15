@@ -25,6 +25,7 @@ class Monitor:
             self.state[p.name] = {
                 "urls": {u: {"last": None, "ms": deque(maxlen=HIST), "ok": deque(maxlen=HIST)} for u in p.urls},
                 "users": {"value": None, "error": "", "at": None},
+                "installs": {"value": None, "error": "", "at": None},
                 "active": {"value": None, "error": "", "hist": deque(maxlen=HIST), "at": None},
                 "errors": {"count": None, "latest": [], "error": "", "at": None},
             }
@@ -66,6 +67,7 @@ class Monitor:
             users = src.total_users()
             active = src.active_users() if p.ga4_property_id else None
             errors = src.errors_24h() if p.errors_collection else None
+            installs = src.installs() if p.installs_path else None
             now = datetime.now(timezone.utc).isoformat()
             with self.lock:
                 st = self.state[p.name]
@@ -76,6 +78,8 @@ class Monitor:
                         st["active"]["hist"].append(active["value"])
                 if errors:
                     st["errors"] = {**errors, "at": now}
+                if installs:
+                    st["installs"] = {**installs, "at": now}
 
     # ------------------------------------------------------------ demo data (clearly fake)
     def _demo_url(self, url: str) -> dict:
@@ -89,7 +93,13 @@ class Monitor:
         with self.lock:
             st = self.state[p.name]
             seed = sum(map(ord, p.name))
-            st["users"] = {"value": 800 + seed * 7 % 4000, "error": "", "at": now.isoformat()}
+            total = 800 + seed * 7 % 4000
+            st["users"] = {"value": total, "active7": total // 3, "active30": total // 2, "new7": total // 40,
+                           "error": "", "at": now.isoformat()}
+            if p.installs_path:
+                ti = int(total * 1.6)
+                st["installs"] = {"value": ti, "active7": ti // 3, "active30": ti // 2, "new7": ti // 30,
+                                  "versions": {"2.2": ti // 2, "2.1": ti // 3}, "error": "", "at": now.isoformat()}
             if p.ga4_property_id:
                 base = 12 + seed % 40
                 v = max(0, int(random.gauss(base, 4)))
@@ -128,10 +138,12 @@ class Monitor:
                 out.append({
                     "name": p.name, "status": status, "urls": urls,
                     "users": dict(st["users"]),
+                    "installs": dict(st["installs"]),
                     "active": {k: (list(v) if k == "hist" else v) for k, v in st["active"].items()},
                     "errors": dict(st["errors"]),
                     "configured": {"urls": bool(p.urls), "users": bool(p.service_account) or self.demo,
-                                   "active": bool(p.ga4_property_id), "errors": bool(p.errors_collection)},
+                                   "active": bool(p.ga4_property_id), "errors": bool(p.errors_collection),
+                                   "installs": bool(p.installs_path)},
                 })
         return {"generated": datetime.now(timezone.utc).isoformat(), "demo": self.demo, "projects": out,
                 "fast_seconds": self.config.fast_seconds, "slow_seconds": self.config.slow_seconds}
