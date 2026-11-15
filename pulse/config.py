@@ -29,6 +29,7 @@ class Config:
     slow_seconds: int = 600  # users, active users, errors (keeps Firebase reads tiny)
     port: int = 8787
     base: Path = Path(".")
+    downloads_url: str = ""
 
 
 _URL = re.compile(r"^https?://[^\s]+$")
@@ -85,12 +86,16 @@ def load(path) -> Config:
         projects.append(Project(name, urls, sa_path, prop, col, dbu, inst))
     if not projects:
         raise ConfigError("No projects in the config. Add at least one under \"projects\".")
+    dl = str(raw.get("downloads_url", "") or "")
+    if dl and not _URL.match(dl):
+        raise ConfigError("downloads_url must be an http(s) URL to a totals.json file (see downloads/track.py).")
     return Config(
         projects,
         max(15, int(raw.get("fast_seconds", 60))),
         max(120, int(raw.get("slow_seconds", 600))),
         int(raw.get("port", 8787)),
         base,
+        dl,
     )
 
 
@@ -101,4 +106,4 @@ def demo_config() -> Config:
         Project("Freezer (Android)", ["https://demo.invalid/freezer-slow"], None, "100000002", "app_errors"),
         Project("License tool (web)", ["https://demo.invalid/licenses", "https://demo.invalid/api-down"], None, "", "app_errors"),
         Project("Landing page", ["https://demo.invalid/landing"], None, "", ""),
-    ], 4, 6, 8787, Path("."))
+    ], 4, 6, 8787, Path("."), "demo")

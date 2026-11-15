@@ -22,6 +22,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 HIST = HERE / "history.csv"
 SUMMARY = HERE / "summary.md"
+TOTALS = HERE / "totals.json"
 FIELDS = ["date", "app", "tag", "asset", "asset_id", "count"]
 
 
@@ -99,6 +100,19 @@ def write_summary(rows: list[dict], apps: list[str]) -> None:
     SUMMARY.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def write_totals(rows: list[dict], apps: list[str]) -> None:
+    """Small file for websites and dashboards: total and last-7-days per app."""
+    days = totals_by_day(rows)
+    order = sorted(days)
+    last = days[order[-1]] if order else {}
+    ref = (dt.date.fromisoformat(order[-1]) - dt.timedelta(days=7)).isoformat() if order else ""
+    prev = [d for d in order if d <= ref]
+    w = days[prev[-1]] if prev else None
+    out = {"updated": order[-1] if order else None,
+           "apps": {a: {"total": last.get(a, 0), "last7": (last.get(a, 0) - w.get(a, 0)) if w else None} for a in apps}}
+    TOTALS.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     cfg = json.loads((HERE / "apps.json").read_text(encoding="utf-8"))
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
@@ -121,6 +135,7 @@ def main() -> int:
         wr.writeheader()
         wr.writerows(sorted(rows, key=lambda r: (r["date"], r["app"], r["tag"], r["asset"])))
     write_summary(rows, apps)
+    write_totals(rows, apps)
     print(json.dumps(totals_by_day(rows)[today], ensure_ascii=False))
     return 0
 

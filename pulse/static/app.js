@@ -87,13 +87,25 @@ function card(p) {
   return c;
 }
 
+function downloadsCard(d) {
+  if (!d || !d.apps || !Object.keys(d.apps).length) return null;
+  const c = el("section", "card");
+  const h = el("h2"); h.appendChild(el("span", "", "Downloads")); h.appendChild(el("span", "pill up", d.updated || "")); c.appendChild(h);
+  const t = el("div", "tiles");
+  Object.entries(d.apps).forEach(([name, a]) => t.appendChild(tile(name, a.total, a.last7 === null || a.last7 === undefined ? "" : `+${a.last7} /7d`)));
+  c.appendChild(t);
+  c.appendChild(el("div", "note", "Release downloads on GitHub (includes your own and in-app updates)."));
+  if (d.error) c.appendChild(el("div", "note problem", "Downloads: " + d.error));
+  return c;
+}
+
 async function refresh() {
   try {
     const r = await fetch(SRC + (HOSTED ? "?t=" + Date.now() : ""), { cache: "no-store" });
     const s = await r.json();
     $("demo").hidden = !s.demo;
     $("slow").textContent = Math.round(s.slow_seconds / 60);
-    const grid = $("grid"); grid.replaceChildren(...s.projects.map(card));
+    const grid = $("grid"); grid.replaceChildren(...(downloadsCard(s.downloads) ? [downloadsCard(s.downloads)] : []), ...s.projects.map(card));
     const count = (st) => s.projects.filter((p) => p.status === st).length;
     const sum = $("summary"); sum.replaceChildren();
     [["up", "ok"], ["slow", "warn"], ["down", "bad"]].forEach(([st]) => { if (count(st)) sum.appendChild(el("span", "pill " + st, count(st) + " " + st)); });

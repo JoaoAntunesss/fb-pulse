@@ -169,3 +169,13 @@ Rules (Realtime Database > Rules), next to your existing ones:
 ```
 
 Mention it in your privacy policy (e.g. "the app sends a random ID and its version once a day to count installs").
+
+## 7. Downloads of your apps (GitHub Releases)
+
+`downloads/track.py` runs every 2 hours in GitHub Actions (`.github/workflows/downloads.yml`), counts the downloads of
+every release file of the repos in `downloads/apps.json` and writes `downloads/history.csv`, `summary.md` and
+`totals.json`. Point the dashboard at that file:
+
+```json
+"downloads_url": "https://raw.githubusercontent.com/YOUR_USER/fb-pulse/main/downloads/totals.json"
+```

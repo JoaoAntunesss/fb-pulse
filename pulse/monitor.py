@@ -5,6 +5,7 @@ import json
 import random
 import threading
 import time
+import urllib.request
 from collections import deque
 from datetime import datetime, timedelta, timezone
 
@@ -29,6 +30,7 @@ class Monitor:
                 "active": {"value": None, "error": "", "hist": deque(maxlen=HIST), "at": None},
                 "errors": {"count": None, "latest": [], "error": "", "at": None},
             }
+        self.downloads = {"apps": {}, "updated": None, "error": ""}
         self.sources = {} if demo else {p.name: FirebaseSources(p) for p in config.projects if p.service_account}
         self._load_history()
 
@@ -56,7 +58,25 @@ class Monitor:
                     s["ok"].append(1 if res["ok"] else 0)
         self._save_history()
 
+    def poll_downloads(self) -> None:
+        url = self.config.downloads_url
+        if not url:
+            return
+        if self.demo:
+            d = {"updated": datetime.now(timezone.utc).date().isoformat(), "apps": {
+                "Garage log": {"total": 1840, "last7": 96}, "Freezer": {"total": 612, "last7": 31}}, "error": ""}
+        else:
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "fb-pulse/1.0"}), timeout=15) as r:
+                    d = json.load(r)
+                d["error"] = ""
+            except Exception as e:  # noqa: BLE001
+                d = {**self.downloads, "error": str(e)[:160]}
+        with self.lock:
+            self.downloads = d
+
     def poll_slow(self) -> None:
+        self.poll_downloads()
         for p in self.config.projects:
             if self.demo:
                 self._demo_slow(p)
@@ -145,7 +165,9 @@ class Monitor:
                                    "active": bool(p.ga4_property_id), "errors": bool(p.errors_collection),
                                    "installs": bool(p.installs_path)},
                 })
-        return {"generated": datetime.now(timezone.utc).isoformat(), "demo": self.demo, "projects": out,
+        with self.lock:
+            downloads = dict(self.downloads)
+        return {"generated": datetime.now(timezone.utc).isoformat(), "demo": self.demo, "projects": out, "downloads": downloads,
                 "fast_seconds": self.config.fast_seconds, "slow_seconds": self.config.slow_seconds}
 
     # ------------------------------------------------------------ history on disk (survives restarts)
