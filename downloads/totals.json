@@ -1,16 +1,16 @@
 {
- "updated": "2026-11-15",
+ "updated": "2026-11-16",
  "apps": {
   "AWplayer": {
-   "total": 3,
+   "total": 5,
    "last7": null
   },
   "Cockpit": {
-   "total": 24,
+   "total": 30,
    "last7": null
   },
   "Freezer": {
-   "total": 9,
+   "total": 16,
    "last7": null
   }
  }
