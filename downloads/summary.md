@@ -4,7 +4,7 @@ Atualizado a 2026-11-19 (contagem do GitHub, de 2 em 2 horas).
 
 | App | Total | Últimos 7 dias | Últimos 30 dias |
 |---|---:|---:|---:|
-| AWplayer | 8 | - | - |
+| AWplayer | 9 | - | - |
 | Cockpit | 30 | - | - |
 | Freezer | 16 | - | - |
 
@@ -14,7 +14,7 @@ Inclui os teus próprios downloads e as atualizações feitas dentro das apps.
 
 | Dia | AWplayer | Cockpit | Freezer |
 |---|---:|---:|---:|
-| 2026-11-19 | 8 | 30 | 16 |
+| 2026-11-19 | 9 | 30 | 16 |
 | 2026-11-18 | 8 | 30 | 16 |
 | 2026-11-17 | 7 | 30 | 16 |
 | 2026-11-16 | 5 | 30 | 16 |
